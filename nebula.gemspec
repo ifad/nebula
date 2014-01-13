@@ -8,8 +8,7 @@ Gem::Specification.new do |spec|
   spec.version       = Nebula::VERSION
   spec.authors       = ["Peter Brindisi"]
   spec.email         = ["peter.brindisi@gmail.com"]
-  spec.summary       = %q{TODO: Write a short summary. Required.}
-  spec.description   = %q{TODO: Write a longer description. Optional.}
+  spec.summary       = %q{Organize unstructured data in a graph}
   spec.homepage      = ""
   spec.license       = "MIT"
 
@@ -18,6 +17,9 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
+  spec.add_dependency "pg"
+
   spec.add_development_dependency "bundler", "~> 1.5"
   spec.add_development_dependency "rake"
+  spec.add_development_dependency "debugger"
 end
