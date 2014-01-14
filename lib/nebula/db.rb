@@ -47,18 +47,63 @@ module Nebula
       })
     end
 
+    # index nodes on JSON in 'data' column.
+    # :on   is either a list of keys
+    # :path specifies that the list of keys is a JSON path (default true)
+    # :name is an optional index name
+    # :type is the optional type of index to use, for example :hash
+    #
+    # example: create an index on all nodes that have
+    # the 'foo' key
+    # create_node_index(on: [ 'foo' ], type: :hash)
+    #
+    # example: create an index on all nodes that have
+    # a 'bar' key with the value 'baz'
+    # create_node_index(on: { 'bar' => 'baz' })
+    #
+    def create_node_index(args = { })
+      case (on = args.delete(:on))
+        when Array then create_node_index_on_keys(on, args)
+        else
+          raise ArgumentError, "invalid value for :on"
+      end
+    end
+
+    def node_indexes
+      @connection.exec(%{ SELECT * FROM pg_indexes WHERE tablename = '#{TABLES[:nodes]}' })
+    end
+
     protected
 
       def insert(table, attributes = { })
         sql = <<-SQL
           INSERT INTO #{TABLES[table]} (#{attributes.keys.join(', ')})
           VALUES (#{attributes.length.times.map { |t| "$#{t + 1}" }.join(", ")})
-          RETURNING id
+          RETURNING *
         SQL
 
         result = @connection.exec(sql, attributes.values)
 
-        attributes.merge(id: result[0]['id'])
+        result[0]
+      end
+
+      def create_node_index_on_keys(keys = [ ], options = { })
+        if keys.empty?
+          raise ArgumentError, "no keys given"
+        end
+
+        name = options[:name] ? "#{TABLES[:nodes]}_#{options[:name]}" : ""
+        type = options[:type] ? "USING #{options[:type]}"        : ""
+
+        sql  = %{ CREATE INDEX #{name} ON #{TABLES[:nodes]} #{type} }
+
+        if options.fetch(:path, true) && keys.length > 1
+          sql << "((data#>>'{#{keys.join(', ')}}'))"
+        else
+          sql << "((#{keys.map { |k| "data->>'#{k}'" }.join('), (')}))"
+        end
+
+        @connection.exec(sql)
       end
 
     private
