@@ -38,13 +38,13 @@ module Nebula
       end
 
       def create(label, params = { })
-        if attrs = cast_attributes(db.create(table, label, params))
+        if attrs = db.create(table, label, params)
           new(attrs)
         end
       end
 
       def find(id)
-        if attrs = cast_attributes(db.get(table, id))
+        if attrs = db.get(table, id)
           new(attrs)
         end
       end
@@ -55,10 +55,9 @@ module Nebula
 
       protected
 
-        def cast_attributes(data)
-          return unless data
-          (@attributes || { }).inject({ }) do |attrs, (name, klass)|
-            attrs.merge(name => cast(data[name.to_s], klass))
+        def cast_attributes(data, &block)
+          (@attributes || { }).each do |name, klass|
+            block.call(name, cast(data[name.to_s], klass))
           end
         end
 
@@ -79,7 +78,7 @@ module Nebula
     end
 
     def initialize(args = { })
-      args.each do |key, value|
+      self.class.send(:cast_attributes, args) do |key, value|
         instance_variable_set("@#{key}", value)
       end
     end
