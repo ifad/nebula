@@ -2,5 +2,19 @@ require "nebula/version"
 require "nebula/db"
 
 module Nebula
-  # Your code goes here...
+  @@config = { }
+
+  def config
+    @@config
+  end
+
+  def database=(conf)
+    config[:database] = conf
+  end
+
+  def database
+    config[:database]
+  end
+
+  extend self
 end

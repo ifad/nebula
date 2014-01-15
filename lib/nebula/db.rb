@@ -3,33 +3,43 @@ require 'yajl'
 
 module Nebula
   class Db
+
     TABLES = {
       nodes: 'nebula_nodes',
       edges: 'nebula_edges'
     }.freeze
 
+    class ConnectionParams < Hash
+      def inspect
+        "#<Nebula::Db::ConnectionParams>"
+      end
+    end
+
     def initialize(args = { })
-      @host     = args.fetch(:host, 'localhost')
-      @port     = args.fetch(:port, '5432')
-      @dbname   = args.fetch(:dbname)
-      @user     = args.fetch(:user)
-      @password = args.fetch(:password)
+      @connection_params = ConnectionParams[{
+        host:     args.fetch(:host, 'localhost'),
+        port:     args.fetch(:port, 5432),
+        dbname:   args.fetch(:dbname),
+        user:     args.fetch(:user),
+        password: args.fetch(:password)
+      }]
     end
 
     def connect!(options = { })
-      @connection = PG.connect({
-        host:     @host,
-        port:     @port,
-        dbname:   @dbname,
-        user:     @user,
-        password: @password
-      })
+      @connection = PG.connect(@connection_params)
 
       if status = (@connection.status == PG::CONNECTION_OK)
         initialize_tables(options.fetch(:recreate, false))
       end
 
       status
+    end
+
+    def create(table, label, args = { })
+      case table
+        when :nodes then create_node(label, args)
+        when :edges then create_edge(label, args)
+      end
     end
 
     def create_node(label, args = { })
@@ -57,10 +67,6 @@ module Nebula
     # the 'foo' key
     # create_node_index(on: [ 'foo' ], type: :hash)
     #
-    # example: create an index on all nodes that have
-    # a 'bar' key with the value 'baz'
-    # create_node_index(on: { 'bar' => 'baz' })
-    #
     def create_node_index(args = { })
       case (on = args.delete(:on))
         when Array then create_node_index_on_keys(on, args)
@@ -69,8 +75,13 @@ module Nebula
       end
     end
 
-    def node_indexes
-      @connection.exec(%{ SELECT * FROM pg_indexes WHERE tablename = '#{TABLES[:nodes]}' })
+    # list all indexes on the given table
+    def list_indexes(table)
+      @connection.exec(%{ SELECT * FROM pg_indexes WHERE tablename = '#{TABLES[table]}' })
+    end
+
+    def truncate(table)
+      @connection.exec(%{ TRUNCATE TABLE #{TABLES[table]} CASCADE })
     end
 
     protected
