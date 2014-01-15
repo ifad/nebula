@@ -32,6 +32,9 @@ module Nebula
         initialize_tables(options.fetch(:recreate, false))
       end
 
+      # silence notices
+      @connection.set_notice_receiver { }
+
       status
     end
 
