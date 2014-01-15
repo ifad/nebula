@@ -22,6 +22,10 @@ module Nebula
         raise NotImplementedError
       end
 
+      def table_name
+        Nebula::DB::TABLES[table]
+      end
+
       def db
         Model.db
       end
@@ -34,7 +38,15 @@ module Nebula
       end
 
       def create(label, params = { })
-        new(cast_attributes(db.create(table, label, params)))
+        if attrs = cast_attributes(db.create(table, label, params))
+          new(attrs)
+        end
+      end
+
+      def find(id)
+        if attrs = cast_attributes(db.get(table, id))
+          new(attrs)
+        end
       end
 
       def destroy_all
@@ -44,6 +56,7 @@ module Nebula
       protected
 
         def cast_attributes(data)
+          return unless data
           (@attributes || { }).inject({ }) do |attrs, (name, klass)|
             attrs.merge(name => cast(data[name.to_s], klass))
           end
@@ -69,6 +82,10 @@ module Nebula
       args.each do |key, value|
         instance_variable_set("@#{key}", value)
       end
+    end
+
+    def ==(other)
+      self.id == other.id
     end
   end
 end

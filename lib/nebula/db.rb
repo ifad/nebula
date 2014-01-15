@@ -60,6 +60,10 @@ module Nebula
       })
     end
 
+    def get(table, id)
+      select(table, [ [ 'id', '=', id ] ]).first
+    end
+
     # index nodes on JSON in 'data' column.
     # :on   is either a list of keys
     # :path specifies that the list of keys is a JSON path (default true)
@@ -99,6 +103,15 @@ module Nebula
         result = @connection.exec(sql, attributes.values)
 
         result[0]
+      end
+
+      def select(table, conds = [ ], options = { })
+        sql = <<-SQL
+          SELECT #{options.fetch(:select, '*')} FROM #{TABLES[table]}
+          WHERE (#{conds.each_with_index.map { |(key, op, _), i| "#{key} #{op} $#{i + 1}" }.join(' AND ')})
+        SQL
+
+        @connection.exec(sql, conds.map { |(_, _, val)| val })
       end
 
       def create_node_index_on_keys(keys = [ ], options = { })
