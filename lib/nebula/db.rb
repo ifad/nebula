@@ -38,23 +38,23 @@ module Nebula
       status
     end
 
-    def create(table, label, args = { })
+    def create(table, args = { })
       case table
-        when :nodes then create_node(label, args)
-        when :edges then create_edge(label, args)
+        when :nodes then create_node(args)
+        when :edges then create_edge(args)
       end
     end
 
-    def create_node(label, args = { })
+    def create_node(args = { })
       insert(:nodes, {
-        label: label,
+        label: args.fetch(:label),
         data:  Yajl::Encoder.encode(args.fetch(:data))
       })
     end
 
-    def create_edge(label, args = { })
+    def create_edge(args = { })
       insert(:edges, {
-        label:        label,
+        label:        args.fetch(:label),
         from_node_id: args.fetch(:from).id,
         to_node_id:   args.fetch(:to).id
       })
@@ -205,10 +205,6 @@ module Nebula
         else
           @connection.exec("CREATE INDEX #{name} ON #{TABLES[table]} (#{column})")
         end
-      end
-
-      def to_hash(result)
-
       end
   end
 end

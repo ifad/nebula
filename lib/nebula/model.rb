@@ -1,4 +1,5 @@
 require 'yajl'
+require 'hashie'
 require 'nebula'
 require 'nebula/db'
 
@@ -15,6 +16,11 @@ module Nebula
       @@db ||= Nebula::Db.new(Nebula.database).tap do |db|
         db.connect!
       end
+    end
+
+    class Params < Hash
+      include Hashie::Extensions::MergeInitializer
+      include Hashie::Extensions::IndifferentAccess
     end
 
     module ClassMethods
@@ -37,8 +43,8 @@ module Nebula
         end
       end
 
-      def create(label, params = { })
-        if attrs = db.create(table, label, params)
+      def create(params = { })
+        if attrs = db.create(table, params)
           new(attrs)
         end
       end
@@ -62,6 +68,8 @@ module Nebula
         end
 
         def cast(value, klass)
+          return nil unless value
+
           if klass == Integer
             value.to_i
 
@@ -69,7 +77,7 @@ module Nebula
             value.to_s
 
           elsif klass == Hash
-            Hash[Yajl::Parser.parse(value)]
+            value.is_a?(Hash) ? value : Hash[Yajl::Parser.parse(value)]
 
           else
             value
@@ -78,7 +86,7 @@ module Nebula
     end
 
     def initialize(args = { })
-      self.class.send(:cast_attributes, args) do |key, value|
+      self.class.send(:cast_attributes, Params.new(args)) do |key, value|
         instance_variable_set("@#{key}", value)
       end
     end

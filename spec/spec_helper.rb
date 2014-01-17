@@ -19,6 +19,10 @@ RSpec.configure do |config|
     end
   end)
 
+  config.before(:each) do
+    Nebula::Node.destroy_all
+  end
+
   config.after(:each) do
     Nebula::Node.destroy_all
   end
