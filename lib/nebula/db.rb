@@ -64,6 +64,10 @@ module Nebula
       select(table, [ [ 'id', '=', id ] ]).first
     end
 
+    def count(table)
+      select(table, [ ], select: 'COUNT(*)').first['count'].to_i
+    end
+
     # index nodes on JSON in 'data' column.
     # :on   is either a list of keys
     # :path specifies that the list of keys is a JSON path (default true)
@@ -108,8 +112,13 @@ module Nebula
       def select(table, conds = [ ], options = { })
         sql = <<-SQL
           SELECT #{options.fetch(:select, '*')} FROM #{TABLES[table]}
-          WHERE (#{conds.each_with_index.map { |(key, op, _), i| "#{key} #{op} $#{i + 1}" }.join(' AND ')})
         SQL
+
+        unless conds.empty?
+          sql << <<-SQL
+            WHERE (#{conds.each_with_index.map { |(key, op, _), i| "#{key} #{op} $#{i + 1}" }.join(' AND ')})
+          SQL
+        end
 
         @connection.exec(sql, conds.map { |(_, _, val)| val })
       end

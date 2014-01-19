@@ -55,6 +55,10 @@ module Nebula
         end
       end
 
+      def count
+        db.count(table)
+      end
+
       def destroy_all
         db.truncate(table)
       end

@@ -36,4 +36,24 @@ describe Nebula::Node do
       it { expects(subject).to eq(nil) }
     end
   end
+
+  describe '::count' do
+    let!(:nodes) do
+      3.times.map do
+        Nebula::Node.create(label: :hello, data: { a: 'world', b: '!' })
+      end
+    end
+
+    it { expects(Nebula::Node.count).to eq(3) }
+  end
+
+  describe '::destroy_all' do
+    let!(:nodes) do
+      3.times.map do
+        Nebula::Node.create(label: :hello, data: { a: 'world', b: '!' })
+      end
+    end
+
+    it { expects { Nebula::Node.destroy_all }.to change(Nebula::Node, :count) }
+  end
 end
