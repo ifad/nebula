@@ -1,11 +1,11 @@
 require 'spec_helper'
 
 describe Nebula::Node do
-  describe 'table' do
+  describe '::table' do
     it { expects(Nebula::Node.table).to eq(:nodes) }
   end
 
-  describe 'new' do
+  describe '::new' do
     subject { Nebula::Node.new(label: :hello, data: { a: 'world', b: '!' }) }
 
     it { expects(subject.id).to eq(nil) }
@@ -13,7 +13,7 @@ describe Nebula::Node do
     it { expects(subject.data).to eq('a' => 'world', 'b' => '!') }
   end
 
-  describe 'create' do
+  describe '::create' do
     subject { Nebula::Node.create(label: :hello, data: { a: 'world', b: '!' }) }
 
     it { expects(subject.id).to be_kind_of(Integer) }
@@ -21,7 +21,7 @@ describe Nebula::Node do
     it { expects(subject.data).to eq('a' => 'world', 'b' => '!') }
   end
 
-  describe 'find' do
+  describe '::find' do
     let(:node) { Nebula::Node.create(label: :hello, data: { a: 'world', b: '!' }) }
 
     describe 'existing' do
