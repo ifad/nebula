@@ -16,6 +16,7 @@ describe Nebula::Node do
   describe '::create' do
     subject { Nebula::Node.create(label: :hello, data: { a: 'world', b: '!' }) }
 
+    it { expects { subject }.to change(Nebula::Node, :count).by(1) }
     it { expects(subject.id).to be_kind_of(Integer) }
     it { expects(subject.label).to eq('hello') }
     it { expects(subject.data).to eq('a' => 'world', 'b' => '!') }
