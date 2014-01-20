@@ -10,6 +10,12 @@ module Nebula
 
     def self.included(base)
       base.extend(ClassMethods)
+
+      # set up common attributes
+      base.class_eval do
+        attribute :id,    Integer
+        attribute :label, String
+      end
     end
 
     def self.db(options = { })
@@ -29,7 +35,11 @@ module Nebula
 
     module ClassMethods
       def table
-        raise NotImplementedError
+        @table || raise("table not set")
+      end
+
+      def set_table(t)
+        @table = t.to_sym
       end
 
       def table_name
