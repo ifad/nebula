@@ -90,4 +90,20 @@ describe Nebula::Node do
       it { expects { subject }.to raise_error(PG::FeatureNotSupported) }
     end
   end
+
+  describe 'save' do
+    describe 'with valid attribtes' do
+      subject { Nebula::Node.new(label: :hello, data: { a: 'world', b: '!' }) }
+
+      it { expects { subject.save }.to change(Nebula::Node, :count).by(1) }
+      it { expects(subject.save.id).to be_kind_of(Integer) }
+      it { expects(subject.save.label).to eq('hello') }
+      it { expects(subject.save.data).to eq('a' => 'world', 'b' => '!') }
+    end
+
+    describe 'with invalid attributes' do
+      subject { Nebula::Node.new(data: { a: 'world', b: '!' }) }
+      it { expects { subject.save }.to raise_error(PG::NotNullViolation) }
+    end
+  end
 end
