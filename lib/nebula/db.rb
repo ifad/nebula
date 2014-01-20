@@ -55,8 +55,8 @@ module Nebula
     def create_edge(args = { })
       insert(:edges, {
         label:        args.fetch(:label),
-        from_node_id: args.fetch(:from).id,
-        to_node_id:   args.fetch(:to).id
+        from_node_id: args.fetch(:from_node_id),
+        to_node_id:   args.fetch(:to_node_id)
       })
     end
 
