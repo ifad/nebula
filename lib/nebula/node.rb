@@ -12,6 +12,12 @@ module Nebula
       def table
         :nodes
       end
+
+      def create_index(args = { })
+        db.create_node_index(args.merge({
+          on: Array(args.fetch(:on))
+        }))
+      end
     end
   end
 end

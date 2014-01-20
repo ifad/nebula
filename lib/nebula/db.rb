@@ -28,12 +28,12 @@ module Nebula
     def connect!(options = { })
       @connection = PG.connect(@connection_params)
 
+      # silence notices
+      @connection.set_notice_receiver  { }
+
       if status = (@connection.status == PG::CONNECTION_OK)
         initialize_tables(options.fetch(:recreate, false))
       end
-
-      # silence notices
-      @connection.set_notice_receiver { }
 
       status
     end
@@ -71,6 +71,8 @@ module Nebula
     # index nodes on JSON in 'data' column.
     # :on   is either a list of keys
     # :path specifies that the list of keys is a JSON path (default true)
+    #   when false, a multi-column index is created, provided :type does
+    #   not conflict.
     # :name is an optional index name
     # :type is the optional type of index to use, for example :hash
     #
@@ -139,7 +141,7 @@ module Nebula
           sql << "((#{keys.map { |k| "data->>'#{k}'" }.join('), (')}))"
         end
 
-        @connection.exec(sql)
+        @connection.exec(sql).result_status == PG::PGRES_COMMAND_OK
       end
 
     private

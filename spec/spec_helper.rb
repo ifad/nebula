@@ -20,11 +20,7 @@ RSpec.configure do |config|
   end)
 
   config.before(:each) do
-    Nebula::Node.destroy_all
-  end
-
-  config.after(:each) do
-    Nebula::Node.destroy_all
+    Nebula::Model.db(recreate: true)
   end
 
   # test database

@@ -56,4 +56,38 @@ describe Nebula::Node do
 
     it { expects { Nebula::Node.destroy_all }.to change(Nebula::Node, :count) }
   end
+
+  describe '::index_names' do
+    subject { Nebula::Node.index_names }
+    it { expects(subject).to match_array(%w{ index_on_nebula_nodes_label nebula_nodes_pkey }) }
+  end
+
+  describe '::create_index' do
+    describe 'without name' do
+      subject { Nebula::Node.create_index(on: :a) }
+      it { expects(subject).to be_true }
+      it { expects { subject }.to change { Nebula::Node.indexes.length }.by(1) }
+    end
+
+    describe 'with name' do
+      subject! { Nebula::Node.create_index(on: :a, name: 'index_on_a') }
+      it { expects(subject).to be_true }
+      it { expects(Nebula::Node.index_names).to include('nebula_nodes_index_on_a') }
+    end
+
+    describe 'with type' do
+      subject { Nebula::Node.create_index(on: :a, type: :hash) }
+      it { expects(subject).to be_true }
+    end
+
+    describe 'with multiple keys' do
+      subject { Nebula::Node.create_index(on: [ :a, :b ]) }
+      it { expects(subject).to be_true }
+    end
+
+    describe 'with illegal type' do
+      subject { Nebula::Node.create_index(on: [ :a, :b ], path: false, type: :hash) }
+      it { expects { subject }.to raise_error(PG::FeatureNotSupported) }
+    end
+  end
 end

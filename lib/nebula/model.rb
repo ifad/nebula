@@ -13,8 +13,12 @@ module Nebula
     end
 
     def self.db(options = { })
+      if options.fetch(:recreate, false)
+        @@db = nil
+      end
+
       @@db ||= Nebula::Db.new(Nebula.database).tap do |db|
-        db.connect!
+        db.connect!(options)
       end
     end
 
@@ -61,6 +65,14 @@ module Nebula
 
       def destroy_all
         db.truncate(table)
+      end
+
+      def indexes(&block)
+        db.list_indexes(table).map(&(block || proc { |row| row }))
+      end
+
+      def index_names
+        indexes { |row| row['indexname'] }
       end
 
       protected
