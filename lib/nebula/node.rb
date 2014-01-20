@@ -14,5 +14,14 @@ module Nebula
         }))
       end
     end
+
+    def data=(value)
+      super(value || { })
+    end
+
+    def save
+      self.data ||= { }
+      super
+    end
   end
 end

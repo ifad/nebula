@@ -67,7 +67,10 @@ module Nebula
 
         (@attributes ||= { })[name] = klass
 
-        class_eval do
+        # dynamically include a module to contain these
+        # methods, so we can override them if need be
+
+        mod = Module.new do
           define_method(name) do
             instance_variable_get("@#{name}")
           end
@@ -76,6 +79,8 @@ module Nebula
             instance_variable_set("@#{name}", self.class.send(:cast, value, klass))
           end
         end
+
+        include mod
       end
 
       def attributes

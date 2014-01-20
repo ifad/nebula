@@ -94,12 +94,23 @@ describe Nebula::Node do
 
   describe 'save' do
     describe 'with valid attribtes' do
-      subject { Nebula::Node.new(label: :hello, data: { a: 'world', b: '!' }) }
+      describe 'with data' do
+        subject { Nebula::Node.new(label: :hello, data: { a: 'world', b: '!' }) }
 
-      it { expects { subject.save }.to change(Nebula::Node, :count).by(1) }
-      it { expects(subject.save.id).to be_kind_of(Integer) }
-      it { expects(subject.save.label).to eq('hello') }
-      it { expects(subject.save.data).to eq('a' => 'world', 'b' => '!') }
+        it { expects { subject.save }.to change(Nebula::Node, :count).by(1) }
+        it { expects(subject.save.id).to be_kind_of(Integer) }
+        it { expects(subject.save.label).to eq('hello') }
+        it { expects(subject.save.data).to eq('a' => 'world', 'b' => '!') }
+      end
+
+      describe 'without data' do
+        subject { Nebula::Node.new(label: :hello) }
+
+        it { expects { subject.save }.to change(Nebula::Node, :count).by(1) }
+        it { expects(subject.save.id).to be_kind_of(Integer) }
+        it { expects(subject.save.label).to eq('hello') }
+        it { expects(subject.save.data).to eq({ }) }
+      end
     end
 
     describe 'with invalid attributes' do
