@@ -1,6 +1,8 @@
 require 'pg'
 require 'yajl'
 
+require 'nebula/logger'
+
 module Nebula
   class Db
 
@@ -15,6 +17,19 @@ module Nebula
       end
     end
 
+    class LoggedConnection < Nebula::Logger
+      def initialize(connection)
+        super('Db')
+        @connection = connection
+      end
+
+      def method_missing(method, *args, &block)
+        with_logging(:info, "#{method} #{args.inspect}") do
+          @connection.send(method, *args, &block)
+        end
+      end
+    end
+
     def initialize(args = { })
       @connection_params = ConnectionParams[{
         host:     args.fetch(:host, 'localhost'),
@@ -26,7 +41,7 @@ module Nebula
     end
 
     def connect!(options = { })
-      @connection = PG.connect(@connection_params)
+      @connection = LoggedConnection.new(PG.connect(@connection_params))
 
       # silence notices
       @connection.set_notice_receiver  { }
@@ -106,7 +121,7 @@ module Nebula
           RETURNING *
         SQL
 
-        result = @connection.exec(sql, attributes.values)
+        result = @connection.exec(collapse(sql), attributes.values)
 
         result[0]
       end
@@ -122,7 +137,7 @@ module Nebula
           SQL
         end
 
-        @connection.exec(sql, conds.map { |(_, _, val)| val })
+        @connection.exec(collapse(sql), conds.map { |(_, _, val)| val })
       end
 
       def create_node_index_on_keys(keys = [ ], options = { })
@@ -141,7 +156,7 @@ module Nebula
           sql << "((#{keys.map { |k| "data->>'#{k}'" }.join('), (')}))"
         end
 
-        @connection.exec(sql).result_status == PG::PGRES_COMMAND_OK
+        @connection.exec(collapse(sql)).result_status == PG::PGRES_COMMAND_OK
       end
 
     private
@@ -166,7 +181,7 @@ module Nebula
           WHERE pg_tables.tablename = $1
         SQL
 
-        result = @connection.exec_params(sql, [ TABLES[table] ])
+        result = @connection.exec_params(collapse(sql), [ TABLES[table] ])
 
         !result.values.empty?
       end
@@ -180,7 +195,7 @@ module Nebula
           DROP TABLE #{TABLES[table]} CASCADE
         SQL
 
-        @connection.exec(sql)
+        @connection.exec(collapse(sql))
       end
 
       def create_nodes
@@ -192,7 +207,7 @@ module Nebula
           )
         SQL
 
-        @connection.exec(sql)
+        @connection.exec(collapse(sql))
       end
 
       def create_edges
@@ -205,7 +220,7 @@ module Nebula
           )
         SQL
 
-        @connection.exec(sql)
+        @connection.exec(collapse(sql))
       end
 
       def create_index(table, column, options = { })
@@ -216,6 +231,10 @@ module Nebula
         else
           @connection.exec("CREATE INDEX #{name} ON #{TABLES[table]} (#{column})")
         end
+      end
+
+      def collapse(sql)
+        sql.gsub(/\s+/, ' ')
       end
   end
 end

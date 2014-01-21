@@ -16,5 +16,13 @@ module Nebula
     config[:database]
   end
 
+  def log_path=(path)
+    config[:log_path] = path
+  end
+
+  def log_path
+    config[:log_path] || "/dev/null"
+  end
+
   extend self
 end
