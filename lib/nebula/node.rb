@@ -15,6 +15,14 @@ module Nebula
       end
     end
 
+    def link(other, label = "")
+      Edge.create({
+        from_node_id: self.id,
+        to_node_id:   other.id,
+        label:        label
+      })
+    end
+
     def data=(value)
       super(value || { })
     end

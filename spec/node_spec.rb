@@ -118,4 +118,44 @@ describe Nebula::Node do
       it { expects { subject.save }.to raise_error(PG::NotNullViolation) }
     end
   end
+
+  describe 'link' do
+    context 'with valid nodes' do
+      let(:source) { Nebula::Node.create(label: 'source') }
+      let(:dest)   { Nebula::Node.create(label: 'dest') }
+      let(:edge)   { source.link(dest, "label") }
+
+      it { expects(edge.label).to eq('label') }
+      it { expects(edge.from).to eq(source) }
+      it { expects(edge.to).to eq(dest) }
+    end
+
+    context 'with empty label' do
+      let(:source) { Nebula::Node.create(label: 'source') }
+      let(:dest)   { Nebula::Node.create(label: 'dest') }
+      let(:edge)   { source.link(dest) }
+
+      it { expects(edge.label).to eq('') }
+      it { expects(edge.from).to eq(source) }
+      it { expects(edge.to).to eq(dest) }
+    end
+
+    context 'with nil label' do
+      let(:source) { Nebula::Node.create(label: 'source') }
+      let(:dest)   { Nebula::Node.create(label: 'dest') }
+      it { expects { source.link(dest, nil) }.to raise_error(PG::NotNullViolation) }
+    end
+
+    context 'with invalid source' do
+      let(:source) { Nebula::Node.new(label: 'source') }
+      let(:dest)   { Nebula::Node.create(label: 'dest') }
+      it { expects { source.link(dest) }.to raise_error(PG::NotNullViolation) }
+    end
+
+    context 'with invalid dest' do
+      let(:source) { Nebula::Node.create(label: 'source') }
+      let(:dest)   { Nebula::Node.new(label: 'dest') }
+      it { expects { source.link(dest) }.to raise_error(PG::NotNullViolation) }
+    end
+  end
 end
