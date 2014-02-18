@@ -13,6 +13,10 @@ module Nebula
           on: Array(args.fetch(:on))
         }))
       end
+
+      def query(query = { })
+        Query.new(query).exec.map(&method(:new))
+      end
     end
 
     def link(other, label = "")

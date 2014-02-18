@@ -30,6 +30,16 @@ module Nebula
       end
     end
 
+    class << self
+      def escape(string)
+        if string.is_a?(String)
+          PG::Connection.escape(string)
+        else
+          string
+        end
+      end
+    end
+
     def initialize(args = { })
       @connection_params = ConnectionParams[{
         host:     args.fetch(:host, 'localhost'),
@@ -73,6 +83,10 @@ module Nebula
         from_node_id: args.fetch(:from_node_id),
         to_node_id:   args.fetch(:to_node_id)
       })
+    end
+
+    def exec(sql)
+      @connection.exec(sql)
     end
 
     def get(table, id)

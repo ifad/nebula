@@ -54,7 +54,7 @@ module Nebula
       end
 
       def table_name
-        Nebula::DB::TABLES[table]
+        Nebula::Db::TABLES[table]
       end
 
       def db

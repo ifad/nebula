@@ -1,5 +1,7 @@
 Dir[File.expand_path('../../lib/nebula/**/*.rb', __FILE__)].each { |f| require f }
 
+Dir[File.expand_path('../support/**/*.rb', __FILE__)].each { |f| require f }
+
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 RSpec.configure do |config|
   config.treat_symbols_as_metadata_keys_with_true_values = true
@@ -18,6 +20,8 @@ RSpec.configure do |config|
       base.class_eval { alias_method :expects, :expect }
     end
   end)
+
+  config.include(Nebula::SpecSupport::Data)
 
   config.before(:each) do
     Nebula::Model.db(recreate: true)
